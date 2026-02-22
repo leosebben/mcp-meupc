@@ -1,23 +1,15 @@
 # mcp-meupc
 
-Servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) para o [meupc.net](https://meupc.net) — plataforma brasileira de montagem de PCs com comparação de preços.
+### MCP server for Brazilian PC building and price comparison
 
-Permite que assistentes de IA pesquisem componentes, comparem preços entre lojas, encontrem ofertas e explorem builds da comunidade, tudo diretamente via conversa.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that lets AI assistants search PC components, compare prices across stores, find deals, and explore community builds on [meupc.net](https://meupc.net). No API keys required.
 
-## Ferramentas disponíveis
+[![npm version](https://img.shields.io/npm/v/mcp-meupc.svg)](https://www.npmjs.com/package/mcp-meupc)
+[![npm downloads](https://img.shields.io/npm/dm/mcp-meupc.svg)](https://www.npmjs.com/package/mcp-meupc)
+[![GitHub stars](https://img.shields.io/github/stars/leosebben/mcp-meupc.svg?style=flat&logo=github&color=brightgreen)](https://github.com/leosebben/mcp-meupc/stargazers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-| Ferramenta | Descrição |
-|---|---|
-| `search_components` | Busca componentes por texto (ex: "rtx 4070", "ryzen 7") |
-| `list_components` | Lista componentes por categoria com paginação e ordenação |
-| `get_component_details` | Especificações técnicas completas e preços por loja (PIX e normal) |
-| `get_deals` | Ofertas atuais com desconto e histórico de menor preço em 90 dias |
-| `list_community_builds` | Builds compartilhadas pela comunidade |
-| `get_build_details` | Detalhes de uma build: componentes, preços, compatibilidade e consumo |
-
-**Categorias suportadas:** processadores, placas-video, placas-mae, memorias, armazenamentos, gabinetes, fontes, monitores, coolers-processador, water-coolers
-
-## Instalação
+## Quick Start
 
 ### Claude Code
 
@@ -25,9 +17,11 @@ Permite que assistentes de IA pesquisem componentes, comparem preços entre loja
 claude mcp add meupc -- npx -y mcp-meupc
 ```
 
-### Claude Desktop
+### Cursor
 
-Adicione ao seu `claude_desktop_config.json`:
+[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor" height="32">](https://cursor.com/install-mcp?name=meupc&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm1jcC1tZXVwYyJdfQ%3D%3D)
+
+### Claude Desktop / Windsurf / Other MCP Clients
 
 ```json
 {
@@ -40,33 +34,53 @@ Adicione ao seu `claude_desktop_config.json`:
 }
 ```
 
-### Manual (do source)
+## What can it do?
+
+Ask your AI assistant to:
+
+- **"Qual a placa de video mais barata?"** — Search components and compare prices
+- **"Quero montar um PC gamer por R$5000"** — Explore community builds by budget
+- **"Mostra as ofertas de SSD"** — Find current deals with discount history
+- **"Detalha esse Ryzen 7 5800X3D"** — Get full specs and prices across stores
+
+## Available Tools
+
+| Tool | Description |
+|---|---|
+| `search_components` | Search components by text (e.g. "rtx 4070", "ryzen 7") |
+| `list_components` | List components by category with pagination and sorting |
+| `get_component_details` | Full specs and prices per store (PIX and regular) |
+| `get_deals` | Current deals with discount and 90-day price history |
+| `list_community_builds` | Community-shared PC builds |
+| `get_build_details` | Build details: components, prices, compatibility, power consumption |
+
+**Supported categories:** processadores, placas-video, placas-mae, memorias, armazenamentos, gabinetes, fontes, monitores, coolers-processador, water-coolers
+
+## Install from Source
 
 ```bash
 git clone https://github.com/leosebben/mcp-meupc.git
 cd mcp-meupc
 npm install
 npm run build
-
-# Adicionar ao Claude Code
-claude mcp add meupc -- node /caminho/para/mcp-meupc/build/index.js
+claude mcp add meupc -- node /path/to/mcp-meupc/build/index.js
 ```
 
-## Desenvolvimento
+## Development
 
 ```bash
-npm run dev    # Executa com tsx (hot reload)
-npm run build  # Compila TypeScript
-npm start      # Executa versão compilada
+npm run dev    # Run with tsx (hot reload)
+npm run build  # Compile TypeScript
+npm start      # Run compiled version
 ```
 
 ## Stack
 
 - [TypeScript](https://www.typescriptlang.org/)
-- [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) — SDK oficial do MCP
-- [Cheerio](https://cheerio.js.org/) — parsing de HTML
-- [Zod](https://zod.dev/) — validação de schemas
+- [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) — Official MCP SDK
+- [Cheerio](https://cheerio.js.org/) — HTML parsing
+- [Zod](https://zod.dev/) — Schema validation
 
-## Licença
+## License
 
 [MIT](LICENSE)
