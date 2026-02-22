@@ -1,0 +1,56 @@
+import { z } from "zod";
+import { fetchPage, absoluteUrl, parsePrice } from "../scraper.js";
+import type { ComponentResult } from "../types.js";
+
+export const searchComponentsSchema = z.object({
+  query: z.string().describe("Texto para buscar componentes (ex: 'rtx 4070', 'ryzen 7')"),
+  limit: z.number().int().positive().default(10).describe("Número máximo de resultados"),
+});
+
+export type SearchComponentsParams = z.infer<typeof searchComponentsSchema>;
+
+export async function searchComponents(params: SearchComponentsParams): Promise<string> {
+  const { query, limit } = params;
+  const encoded = encodeURIComponent(query);
+  const $ = await fetchPage(`/pesquisar?q=${encoded}`);
+
+  const results: ComponentResult[] = [];
+
+  $("div.media").each((_, el) => {
+    if (results.length >= limit) return false;
+
+    const $el = $(el);
+    const nameEl = $el.find("div.media-content a h4");
+    const name = nameEl.text().trim();
+    if (!name) return;
+
+    const url = $el.find("div.media-content > a").attr("href") ?? "";
+    const image = $el.find("div.media-left figure img").attr("src") ?? null;
+
+    // Extrair categoria do link "Add na build" (ex: /processadores/add/HASH)
+    const addLink = $el.find("a.button.is-link").attr("href") ?? "";
+    const categoryMatch = addLink.match(/meupc\.net\/([^/]+)\/add\//);
+    const category = categoryMatch ? categoryMatch[1] : null;
+
+    // Extrair preço do parágrafo de preço
+    const priceText = $el.find("div.media-content > p").filter((_, p) => {
+      return $(p).text().includes("R$");
+    }).first().text();
+
+    // Tentar pegar preço PIX primeiro, senão preço normal
+    const pixMatch = priceText.match(/R\$\s*([\d.,]+)\s*no PIX/);
+    const normalMatch = priceText.match(/R\$\s*([\d.,]+)/);
+    const priceStr = pixMatch ? pixMatch[1] : normalMatch ? normalMatch[1] : null;
+    const price = parsePrice(priceStr);
+
+    results.push({
+      name,
+      category,
+      price,
+      url: absoluteUrl(url),
+      image: image && !image.includes("placeholder") ? absoluteUrl(image) : null,
+    });
+  });
+
+  return JSON.stringify(results, null, 2);
+}
