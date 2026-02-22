@@ -30,27 +30,29 @@ export async function getBuildDetails(params: GetBuildDetailsParams): Promise<st
   // Consumo estimado
   const consumption = $("div.consumption strong").text().trim() || null;
 
-  // Componentes da build (cada tbody exceto totais)
+  // Componentes da build — iterar por <tr> individual (não por <tbody>)
+  // pois múltiplos itens do mesmo tipo (ex: 2 pentes de RAM) ficam
+  // em <tr> separados dentro do mesmo <tbody>
   const components: BuildComponent[] = [];
 
-  $("table.table.is-body-striped tbody:not(.table-responsive-totals)").each((_, tbody) => {
-    const $tbody = $(tbody);
+  $("table.table.is-body-striped tbody:not(.table-responsive-totals) tr").each((_, row) => {
+    const $row = $(row);
 
     // Tipo do componente (ex: "Processador", "Placa de vídeo")
-    const type = $tbody.find("th.table-responsive-title a").text().trim()
-      || $tbody.find("th.table-responsive-title").text().trim();
+    const type = $row.find("th.table-responsive-title a").first().text().trim()
+      || $row.find("th.table-responsive-title").first().text().trim();
     if (!type) return;
 
-    // Nome do componente
-    const nameEl = $tbody.find("td.table-responsive-selection a.has-text-strong");
-    const name = nameEl.text().trim();
+    // Nome do componente (normalizar whitespace interno)
+    const nameEl = $row.find("td.table-responsive-selection a.has-text-strong").first();
+    const name = nameEl.text().trim().replace(/\s+/g, " ");
     if (!name) return;
 
     const componentUrl = nameEl.attr("href") ?? null;
 
     // Preço — tentar PIX (bold) primeiro, depois normal (medium)
-    const pixText = $tbody.find("td.table-responsive-price a.has-text-weight-bold.has-text-success").text().trim();
-    const normalText = $tbody.find("td.table-responsive-price a.has-text-weight-medium.has-text-success").text().trim();
+    const pixText = $row.find("td.table-responsive-price a.has-text-weight-bold.has-text-success").first().text().trim();
+    const normalText = $row.find("td.table-responsive-price a.has-text-weight-medium.has-text-success").first().text().trim();
     const price = parsePrice(pixText) ?? parsePrice(normalText);
 
     components.push({
