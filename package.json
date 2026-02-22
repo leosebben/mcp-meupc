@@ -4,10 +4,32 @@
   "description": "MCP server for browsing meupc.net — Brazilian PC building platform with price comparison",
   "type": "module",
   "main": "build/index.js",
+  "bin": {
+    "mcp-meupc": "build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "license": "MIT",
+  "author": "leosebben",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leosebben/mcp-meupc.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "meupc",
+    "pc-building",
+    "price-comparison",
+    "brazil",
+    "hardware"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs=require('fs');const f='build/index.js';fs.writeFileSync(f,'#!/usr/bin/env node\\n'+fs.readFileSync(f))\"",
     "dev": "tsx src/index.ts",
-    "start": "node build/index.js"
+    "start": "node build/index.js",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
