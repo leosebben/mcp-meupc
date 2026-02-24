@@ -11,17 +11,7 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that le
 
 ## Quick Start
 
-### Claude Code
-
-```bash
-claude mcp add meupc -- npx -y mcp-meupc
-```
-
-### Cursor
-
-[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor" height="32">](https://cursor.com/install-mcp?name=meupc&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm1jcC1tZXVwYyJdfQ%3D%3D)
-
-### Claude Desktop / Windsurf / Other MCP Clients
+Add the following config to your MCP client:
 
 ```json
 {
@@ -33,6 +23,87 @@ claude mcp add meupc -- npx -y mcp-meupc
   }
 }
 ```
+
+### MCP Client Configuration
+
+<details open>
+<summary><strong>Claude Code</strong></summary>
+
+```bash
+claude mcp add meupc -- npx -y mcp-meupc
+```
+
+</details>
+
+<details>
+<summary><strong>Cursor</strong></summary>
+
+[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor" height="32">](https://cursor.com/install-mcp?name=meupc&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm1jcC1tZXVwYyJdfQ%3D%3D)
+
+Or go to `Cursor Settings` → `MCP` → `New MCP Server` and use the config above.
+
+</details>
+
+<details>
+<summary><strong>VS Code / Copilot</strong></summary>
+
+Install via the VS Code CLI:
+
+```bash
+code --add-mcp '{"name":"meupc","command":"npx","args":["-y","mcp-meupc"]}'
+```
+
+Or follow the [MCP install guide](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server) with the config above.
+
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
+
+Add the config above to your `claude_desktop_config.json`:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+</details>
+
+<details>
+<summary><strong>Codex</strong></summary>
+
+```bash
+codex mcp add meupc -- npx -y mcp-meupc
+```
+
+</details>
+
+<details>
+<summary><strong>Windsurf</strong></summary>
+
+Follow the [configure MCP guide](https://docs.windsurf.com/windsurf/cascade/mcp#mcp-config-json) using the config above.
+
+</details>
+
+<details>
+<summary><strong>Cline</strong></summary>
+
+Follow the [Cline MCP configuration guide](https://docs.cline.bot/mcp/configuring-mcp-servers) and use the config above.
+
+</details>
+
+<details>
+<summary><strong>Warp</strong></summary>
+
+Go to `Settings | AI | Manage MCP Servers` → `+ Add` to [add an MCP Server](https://docs.warp.dev/knowledge-and-collaboration/mcp#adding-an-mcp-server). Use the config above.
+
+</details>
+
+<details>
+<summary><strong>JetBrains AI Assistant</strong></summary>
+
+Go to `Settings | Tools | AI Assistant | Model Context Protocol (MCP)` → `Add`. Use the config above.
+
+</details>
 
 ## What can it do?
 
