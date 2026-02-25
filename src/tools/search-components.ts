@@ -12,30 +12,27 @@ export type SearchComponentsParams = z.infer<typeof searchComponentsSchema>;
 export async function searchComponents(params: SearchComponentsParams): Promise<string> {
   const { query, limit } = params;
   const encoded = encodeURIComponent(query);
-  const $ = await fetchPage(`/pesquisar?q=${encoded}`);
+  const root = await fetchPage(`/pesquisar?q=${encoded}`);
 
   const results: ComponentResult[] = [];
 
-  $("div.media").each((_, el) => {
-    if (results.length >= limit) return false;
+  for (const el of root.querySelectorAll("div.media")) {
+    if (results.length >= limit) break;
 
-    const $el = $(el);
-    const nameEl = $el.find("div.media-content a h4");
-    const name = nameEl.text().trim();
-    if (!name) return;
+    const name = el.querySelector("div.media-content a h4")?.text.trim() ?? "";
+    if (!name) continue;
 
-    const url = $el.find("div.media-content > a").attr("href") ?? "";
-    const image = $el.find("div.media-left figure img").attr("src") ?? null;
+    const url = el.querySelector("div.media-content > a")?.getAttribute("href") ?? "";
+    const image = el.querySelector("div.media-left figure img")?.getAttribute("src") ?? null;
 
     // Extrair categoria do link "Add na build" (ex: /processadores/add/HASH)
-    const addLink = $el.find("a.button.is-link").attr("href") ?? "";
+    const addLink = el.querySelector("a.button.is-link")?.getAttribute("href") ?? "";
     const categoryMatch = addLink.match(/meupc\.net\/([^/]+)\/add\//);
     const category = categoryMatch ? categoryMatch[1] : null;
 
     // Extrair preço do parágrafo de preço
-    const priceText = $el.find("div.media-content > p").filter((_, p) => {
-      return $(p).text().includes("R$");
-    }).first().text();
+    const priceP = el.querySelectorAll("div.media-content > p").find(p => p.text.includes("R$"));
+    const priceText = priceP?.text ?? "";
 
     // Tentar pegar preço PIX primeiro, senão preço normal
     const pixMatch = priceText.match(/R\$\s*([\d.,]+)\s*no PIX/);
@@ -50,7 +47,7 @@ export async function searchComponents(params: SearchComponentsParams): Promise<
       url: absoluteUrl(url),
       image: image && !image.includes("placeholder") ? absoluteUrl(image) : null,
     });
-  });
+  }
 
   return JSON.stringify(results, null, 2);
 }

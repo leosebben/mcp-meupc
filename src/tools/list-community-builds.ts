@@ -15,35 +15,33 @@ export async function listCommunityBuilds(params: ListCommunityBuildsParams): Pr
   const { sort, page } = params;
 
   const url = `/builds-comunidade?ordem=${sort}&page=${page}`;
-  const $ = await fetchPage(url);
+  const root = await fetchPage(url);
 
   const results: BuildSummary[] = [];
 
-  $("article.card.is-fullheight").each((_, el) => {
-    const $card = $(el);
-
-    const titleEl = $card.find(".card-content h3.title a");
-    const title = titleEl.text().trim();
+  root.querySelectorAll("article.card.is-fullheight").forEach(card => {
+    const titleEl = card.querySelector(".card-content h3.title a");
+    const title = titleEl?.text.trim() ?? "";
     if (!title) return;
 
-    const buildUrl = titleEl.attr("href") ?? "";
+    const buildUrl = titleEl?.getAttribute("href") ?? "";
 
     // Autor
-    const author = $card.find(".card-content p.by a.has-text-weight-semibold").text().trim() || null;
+    const author = card.querySelector(".card-content p.by a.has-text-weight-semibold")?.text.trim() || null;
 
     // Preço total
-    const priceText = $card.find(".card-content a.preco").text().trim();
+    const priceText = card.querySelector(".card-content a.preco")?.text.trim() ?? "";
     const totalPrice = parsePrice(priceText);
 
     // Curtidas
-    const likesAttr = $card.find("footer a.js-like-button").attr("data-total-likes");
-    const likesText = $card.find("footer span.js-like-total").text().trim();
+    const likesAttr = card.querySelector("footer a.js-like-button")?.getAttribute("data-total-likes");
+    const likesText = card.querySelector("footer span.js-like-total")?.text.trim() ?? "";
     const likes = likesAttr ? parseInt(likesAttr, 10) : (likesText ? parseInt(likesText, 10) : null);
 
     // Componentes principais (lista no card)
     const components: string[] = [];
-    $card.find(".card-content div.content.is-small ul li").each((_, li) => {
-      const comp = $(li).text().trim();
+    card.querySelectorAll(".card-content div.content.is-small ul li").forEach(li => {
+      const comp = li.text.trim();
       if (comp) components.push(comp);
     });
 

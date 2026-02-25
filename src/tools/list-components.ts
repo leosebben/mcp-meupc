@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { HTMLElement } from "node-html-parser";
 import { fetchPage, absoluteUrl, parsePrice, BASE_URL } from "../scraper.js";
 import type { ComponentResult } from "../types.js";
 
@@ -25,7 +26,7 @@ export type ListComponentsParams = z.infer<typeof listComponentsSchema>;
 
 /**
  * A página de categorias usa Vue.js client-side para renderizar os produtos.
- * Como cheerio não executa JS, tentamos duas estratégias:
+ * Como não executamos JS, tentamos duas estratégias:
  * 1. Extrair dados JSON embutidos nos scripts da página (window.meupcnetPecas etc.)
  * 2. Se não encontrar, usar a busca (/pesquisar) como fallback
  */
@@ -34,10 +35,10 @@ export async function listComponents(params: ListComponentsParams): Promise<stri
 
   // Tentar extrair dados do script embutido na página de categoria
   const categoryUrl = `/${category}?page=${page}${sort ? `&ordem=${sort}` : ""}`;
-  const $ = await fetchPage(categoryUrl);
+  const root = await fetchPage(categoryUrl);
 
   // Procurar dados JSON nos scripts da página
-  const results = extractFromScripts($, category);
+  const results = extractFromScripts(root, category);
   if (results.length > 0) {
     return JSON.stringify(results, null, 2);
   }
@@ -58,25 +59,23 @@ export async function listComponents(params: ListComponentsParams): Promise<stri
 
   const searchTerm = categoryTerms[category] ?? category;
   const encoded = encodeURIComponent(searchTerm);
-  const $search = await fetchPage(`/pesquisar?q=${encoded}&page=${page}`);
+  const searchRoot = await fetchPage(`/pesquisar?q=${encoded}&page=${page}`);
 
   const searchResults: ComponentResult[] = [];
 
-  $search("div.media").each((_, el) => {
-    const $el = $search(el);
-    const name = $el.find("div.media-content a h4").text().trim();
+  searchRoot.querySelectorAll("div.media").forEach(el => {
+    const name = el.querySelector("div.media-content a h4")?.text.trim() ?? "";
     if (!name) return;
 
-    const url = $el.find("div.media-content > a").attr("href") ?? "";
-    const image = $el.find("div.media-left figure img").attr("src") ?? null;
+    const url = el.querySelector("div.media-content > a")?.getAttribute("href") ?? "";
+    const image = el.querySelector("div.media-left figure img")?.getAttribute("src") ?? null;
 
-    const addLink = $el.find("a.button.is-link").attr("href") ?? "";
+    const addLink = el.querySelector("a.button.is-link")?.getAttribute("href") ?? "";
     const catMatch = addLink.match(/meupc\.net\/([^/]+)\/add\//);
     const cat = catMatch ? catMatch[1] : null;
 
-    const priceText = $el.find("div.media-content > p").filter((_, p) => {
-      return $search(p).text().includes("R$");
-    }).first().text();
+    const priceP = el.querySelectorAll("div.media-content > p").find(p => p.text.includes("R$"));
+    const priceText = priceP?.text ?? "";
 
     const pixMatch = priceText.match(/R\$\s*([\d.,]+)\s*no PIX/);
     const normalMatch = priceText.match(/R\$\s*([\d.,]+)/);
@@ -100,11 +99,11 @@ export async function listComponents(params: ListComponentsParams): Promise<stri
   }, null, 2);
 }
 
-function extractFromScripts($: ReturnType<typeof import("cheerio").load>, category: string): ComponentResult[] {
+function extractFromScripts(root: HTMLElement, category: string): ComponentResult[] {
   const results: ComponentResult[] = [];
 
-  $("script").each((_, script) => {
-    const content = $(script).html() ?? "";
+  root.querySelectorAll("script").forEach(script => {
+    const content = script.innerHTML ?? "";
 
     // Tentar encontrar arrays de dados de peças em variáveis window.*
     const patterns = [
