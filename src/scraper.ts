@@ -1,5 +1,4 @@
-import * as cheerio from "cheerio";
-import type { CheerioAPI } from "cheerio";
+import { parse, HTMLElement } from "node-html-parser";
 
 export const BASE_URL = "https://meupc.net";
 
@@ -8,7 +7,7 @@ const USER_AGENT =
 
 const FETCH_TIMEOUT = 15_000;
 
-export async function fetchPage(path: string): Promise<CheerioAPI> {
+export async function fetchPage(path: string): Promise<HTMLElement> {
   const url = path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 
   const controller = new AbortController();
@@ -29,7 +28,7 @@ export async function fetchPage(path: string): Promise<CheerioAPI> {
     }
 
     const html = await response.text();
-    return cheerio.load(html);
+    return parse(html);
   } finally {
     clearTimeout(timeout);
   }

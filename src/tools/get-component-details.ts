@@ -10,43 +10,44 @@ export type GetComponentDetailsParams = z.infer<typeof getComponentDetailsSchema
 
 export async function getComponentDetails(params: GetComponentDetailsParams): Promise<string> {
   const { url } = params;
-  const $ = await fetchPage(url);
+  const root = await fetchPage(url);
 
-  const name = $("h1.title").first().text().trim();
+  const name = root.querySelector("h1.title")?.text.trim() ?? "";
 
   // Extrair categoria do breadcrumb
-  const breadcrumbs = $("nav.breadcrumb li a");
   let category: string | null = null;
-  breadcrumbs.each((_, el) => {
-    const href = $(el).attr("href") ?? "";
+  root.querySelectorAll("nav.breadcrumb li a").forEach(el => {
+    const href = el.getAttribute("href") ?? "";
     if (href.match(/meupc\.net\/\w/) && !href.includes("/peca/")) {
-      category = $(el).text().trim();
+      category = el.text.trim();
     }
   });
 
   // Imagem principal
-  const image = $("div.glide ul.glide__slides li.glide__slide figure img").first().attr("src")
-    ?? $("figure.image img").first().attr("src")
+  const image = root.querySelector("div.glide ul.glide__slides li.glide__slide figure img")?.getAttribute("src")
+    ?? root.querySelector("figure.image img")?.getAttribute("src")
     ?? null;
 
   // Especificações técnicas (primeira table.table.is-striped)
   const specs: Record<string, string> = {};
-  $("table.table.is-striped tr").each((_, row) => {
-    const label = $(row).find("th").text().trim();
+  root.querySelectorAll("table.table.is-striped tr").forEach(row => {
+    const label = row.querySelector("th")?.text.trim() ?? "";
     if (!label) return;
 
-    const td = $(row).find("td");
+    const td = row.querySelector("td");
+    if (!td) return;
+
     // Verificar valores booleanos (ícones sim/não)
-    const yesIcon = td.find('span.icon[title="Sim"]');
-    const noIcon = td.find('span.icon[title="Não"], span.icon[title="Nao"], span.icon[title="Não/Nenhum"], span.icon[title="Nao/Nenhum"]');
+    const yesIcon = td.querySelector('span.icon[title="Sim"]');
+    const noIcon = td.querySelector('span.icon[title="Não"], span.icon[title="Nao"], span.icon[title="Não/Nenhum"], span.icon[title="Nao/Nenhum"]');
 
     let value: string;
-    if (yesIcon.length > 0) {
+    if (yesIcon) {
       value = "Sim";
-    } else if (noIcon.length > 0) {
+    } else if (noIcon) {
       value = "Não";
     } else {
-      value = td.text().trim();
+      value = td.text.trim();
     }
 
     if (label && value) {
@@ -56,21 +57,20 @@ export async function getComponentDetails(params: GetComponentDetailsParams): Pr
 
   // Preços por loja (table.table.is-responsive)
   const prices: StorePrice[] = [];
-  $("table.table.is-responsive tbody tr").each((_, row) => {
-    const $row = $(row);
-    const storeImg = $row.find("th a.loja-img img");
-    const store = storeImg.attr("alt")?.trim() ?? storeImg.attr("title")?.trim() ?? "";
+  root.querySelectorAll("table.table.is-responsive tbody tr").forEach(row => {
+    const storeImg = row.querySelector("th a.loja-img img");
+    const store = storeImg?.getAttribute("alt")?.trim() ?? storeImg?.getAttribute("title")?.trim() ?? "";
     if (!store) return;
 
-    const priceTd = $row.find('td[data-label="Preco"], td.table-responsive-fullwidth.has-text-right');
-    const priceText = priceTd.find("a.has-text-weight-bold").first().text().trim();
+    const priceTd = row.querySelector('td[data-label="Preco"], td.table-responsive-fullwidth.has-text-right');
+    const priceText = priceTd?.querySelector("a.has-text-weight-bold")?.text.trim() ?? "";
     const price = parsePrice(priceText);
 
-    const pixTd = $row.find('td[data-label="Preco PIX"]');
-    const pixText = pixTd.find("a.has-text-weight-bold").first().text().trim();
+    const pixTd = row.querySelector('td[data-label="Preco PIX"]');
+    const pixText = pixTd?.querySelector("a.has-text-weight-bold")?.text.trim() ?? "";
     const pricePix = parsePrice(pixText);
 
-    const buyLink = $row.find("a.button.is-buy").attr("href") ?? null;
+    const buyLink = row.querySelector("a.button.is-buy")?.getAttribute("href") ?? null;
 
     // Verificar disponibilidade — se não tem preço, não está disponível
     const available = price !== null || pricePix !== null;

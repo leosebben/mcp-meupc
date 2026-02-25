@@ -11,48 +11,47 @@ export type GetBuildDetailsParams = z.infer<typeof getBuildDetailsSchema>;
 export async function getBuildDetails(params: GetBuildDetailsParams): Promise<string> {
   const { build_id } = params;
 
-  const $ = await fetchPage(`/build/${build_id}`);
+  const root = await fetchPage(`/build/${build_id}`);
 
   // Título — pode ser genérico ("PC montado (Build)") ou customizado
-  const title = $("h1.title").first().text().trim() || "Build";
+  const title = root.querySelector("h1.title")?.text.trim() || "Build";
 
   // Autor — buscar no conteúdo da página
-  const authorEl = $("p.by a.has-text-weight-semibold, a[href*='/perfil/']").first();
-  const author = authorEl.text().trim() || null;
+  const authorEl = root.querySelector("p.by a.has-text-weight-semibold, a[href*='/perfil/']");
+  const author = authorEl?.text.trim() || null;
 
   // Compatibilidade / observações
   const compatNotes: string[] = [];
-  $("article.message div.message-body ul li").each((_, li) => {
-    const note = $(li).text().trim();
+  root.querySelectorAll("article.message div.message-body ul li").forEach(li => {
+    const note = li.text.trim();
     if (note) compatNotes.push(note);
   });
 
   // Consumo estimado
-  const consumption = $("div.consumption strong").text().trim() || null;
+  const consumption = root.querySelector("div.consumption strong")?.text.trim() || null;
 
   // Componentes da build — iterar por <tr> individual (não por <tbody>)
   // pois múltiplos itens do mesmo tipo (ex: 2 pentes de RAM) ficam
   // em <tr> separados dentro do mesmo <tbody>
   const components: BuildComponent[] = [];
 
-  $("table.table.is-body-striped tbody:not(.table-responsive-totals) tr").each((_, row) => {
-    const $row = $(row);
-
+  root.querySelectorAll("table.table.is-body-striped tbody:not(.table-responsive-totals) tr").forEach(row => {
     // Tipo do componente (ex: "Processador", "Placa de vídeo")
-    const type = $row.find("th.table-responsive-title a").first().text().trim()
-      || $row.find("th.table-responsive-title").first().text().trim();
+    const type = row.querySelector("th.table-responsive-title a")?.text.trim()
+      || row.querySelector("th.table-responsive-title")?.text.trim()
+      || "";
     if (!type) return;
 
     // Nome do componente (normalizar whitespace interno)
-    const nameEl = $row.find("td.table-responsive-selection a.has-text-strong").first();
-    const name = nameEl.text().trim().replace(/\s+/g, " ");
+    const nameEl = row.querySelector("td.table-responsive-selection a.has-text-strong");
+    const name = nameEl?.text.trim().replace(/\s+/g, " ") ?? "";
     if (!name) return;
 
-    const componentUrl = nameEl.attr("href") ?? null;
+    const componentUrl = nameEl?.getAttribute("href") ?? null;
 
     // Preço — tentar PIX (bold) primeiro, depois normal (medium)
-    const pixText = $row.find("td.table-responsive-price a.has-text-weight-bold.has-text-success").first().text().trim();
-    const normalText = $row.find("td.table-responsive-price a.has-text-weight-medium.has-text-success").first().text().trim();
+    const pixText = row.querySelector("td.table-responsive-price a.has-text-weight-bold.has-text-success")?.text.trim() ?? "";
+    const normalText = row.querySelector("td.table-responsive-price a.has-text-weight-medium.has-text-success")?.text.trim() ?? "";
     const price = parsePrice(pixText) ?? parsePrice(normalText);
 
     components.push({
@@ -64,13 +63,13 @@ export async function getBuildDetails(params: GetBuildDetailsParams): Promise<st
   });
 
   // Totais
-  const totalsRows = $("tbody.table-responsive-totals tr");
   let totalPrice: number | null = null;
   let totalPricePix: number | null = null;
 
-  totalsRows.each((_, row) => {
-    const text = $(row).text();
-    const priceCell = $(row).find("td.has-text-right").last().text().trim();
+  root.querySelectorAll("tbody.table-responsive-totals tr").forEach(row => {
+    const text = row.text;
+    const priceCells = row.querySelectorAll("td.has-text-right");
+    const priceCell = priceCells.length > 0 ? priceCells[priceCells.length - 1].text.trim() : "";
 
     if (text.includes("Total no PIX") || text.includes("Total PIX")) {
       totalPricePix = parsePrice(priceCell);
