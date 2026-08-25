@@ -149,7 +149,7 @@ npm start      # Run compiled version
 
 - [TypeScript](https://www.typescriptlang.org/)
 - [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) — Official MCP SDK
-- [Cheerio](https://cheerio.js.org/) — HTML parsing
+- [node-html-parser](https://github.com/taoqf/node-html-parser) — HTML parsing
 - [Zod](https://zod.dev/) — Schema validation
 
 ## License
