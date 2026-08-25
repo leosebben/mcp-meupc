@@ -1,6 +1,6 @@
 {
   "name": "mcp-meupc",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "MCP server for browsing meupc.net — Brazilian PC building platform with price comparison",
   "type": "module",
   "main": "build/index.js",
